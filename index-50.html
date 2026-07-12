@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#ff7eb6" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Rozzie's Playhouse" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./icon-192.png" />
+  <title>Rozzie's Playhouse</title>
+  <style>
+    :root {
+      --pink:#ff7eb6;
+      --pink2:#ffb6db;
+      --purple:#8a63d2;
+      --blue:#66c7f2;
+      --mint:#8ee3c8;
+      --yellow:#ffd86f;
+      --orange:#ff9f68;
+      --ink:#3b3150;
+      --paper:#fffdfd;
+      --shadow:0 10px 24px rgba(61,43,91,.17);
+    }
+
+    * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html, body { margin:0; min-height:100%; font-family:"Trebuchet MS", system-ui, sans-serif; color:var(--ink); overscroll-behavior:none; }
+    body {
+      background:
+        radial-gradient(circle at 15% 8%, rgba(255,255,255,.8) 0 5%, transparent 6%),
+        radial-gradient(circle at 88% 16%, rgba(255,255,255,.65) 0 4%, transparent 5%),
+        linear-gradient(160deg,#ffd9ec 0%,#d9f4ff 43%,#fff1b8 100%);
+      min-height:100dvh;
+      overflow:hidden;
+    }
+
+    button, input, select { font:inherit; }
+    button { border:0; cursor:pointer; touch-action:manipulation; }
+
+    #app { min-height:100dvh; }
+    .screen {
+      position:fixed;
+      inset:0;
+      display:none;
+      flex-direction:column;
+      background:linear-gradient(160deg,rgba(255,238,247,.98),rgba(230,248,255,.98) 55%,rgba(255,246,201,.98));
+      overflow:hidden;
+    }
+    .screen.active { display:flex; }
+
+    .topbar {
+      min-height:70px;
+      display:grid;
+      grid-template-columns:58px 1fr 58px;
+      align-items:center;
+      gap:8px;
+      padding:calc(8px + env(safe-area-inset-top)) 10px 8px;
+      background:rgba(255,255,255,.85);
+      backdrop-filter:blur(12px);
+      border-bottom:3px solid rgba(138,99,210,.12);
+      z-index:20;
+    }
+    .topbar h2 { margin:0; text-align:center; font-size:clamp(1.25rem,5vw,1.8rem); line-height:1.05; }
+    .icon-btn {
+      width:54px;
+      height:54px;
+      border-radius:18px;
+      background:white;
+      box-shadow:var(--shadow);
+      display:grid;
+      place-items:center;
+      font-size:1.7rem;
+    }
+    .icon-btn:active, .game-card:active, .big-choice:active { transform:scale(.96); }
+
+    .content {
+      flex:1;
+      overflow:auto;
+      padding:14px 14px calc(22px + env(safe-area-inset-bottom));
+      -webkit-overflow-scrolling:touch;
+    }
+
+    .home-hero {
+      padding:calc(18px + env(safe-area-inset-top)) 16px 8px;
+      text-align:center;
+    }
+    .home-hero h1 {
+      margin:0;
+      font-size:clamp(2rem,10vw,3.3rem);
+      line-height:.95;
+      color:#7b4bb7;
+      text-shadow:0 3px 0 white;
+    }
+    .home-hero .subtitle { margin:10px 0 0; font-size:1.05rem; font-weight:900; }
+    .mascot { font-size:3.5rem; animation:bob 2.2s ease-in-out infinite; display:inline-block; }
+    @keyframes bob { 50% { transform:translateY(-7px) rotate(3deg); } }
+
+    .home-scroll { flex:1; overflow:auto; padding:8px 12px calc(24px + env(safe-area-inset-bottom)); }
+    .game-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; max-width:760px; margin:auto; }
+    .game-card {
+      min-height:132px;
+      border-radius:26px;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      color:var(--ink);
+      padding:12px 8px;
+      font-weight:1000;
+      font-size:1rem;
+      border:4px solid rgba(255,255,255,.85);
+      transition:transform .12s;
+    }
+    .game-card .emoji { font-size:3.1rem; filter:drop-shadow(0 3px 0 rgba(255,255,255,.8)); }
+    .c1{background:#ffc3df}.c2{background:#c7edff}.c3{background:#c9f5df}.c4{background:#ffe7a7}.c5{background:#dfd1ff}.c6{background:#ffd0b5}.c7{background:#bcebf0}.c8{background:#ffe1f1}.c9{background:#d6f2b8}
+
+    .speak-button { background:#fff; }
+    .panel {
+      background:rgba(255,255,255,.9);
+      border:4px solid rgba(255,255,255,.75);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      padding:16px;
+      max-width:720px;
+      margin:0 auto 14px;
+    }
+    .instruction { text-align:center; margin:0 0 12px; font-size:1.05rem; font-weight:900; }
+    .big-row { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+    .big-choice {
+      min-width:74px;
+      min-height:64px;
+      border-radius:20px;
+      padding:10px 14px;
+      background:white;
+      box-shadow:0 6px 14px rgba(61,43,91,.14);
+      font-weight:1000;
+      font-size:1.25rem;
+    }
+    .big-choice.selected { outline:5px solid var(--purple); transform:scale(1.05); }
+    .primary { background:linear-gradient(135deg,var(--pink),var(--purple)); color:white; }
+    .success { background:linear-gradient(135deg,var(--mint),#52c789); color:#173f34; }
+    .sunny { background:linear-gradient(135deg,var(--yellow),var(--orange)); }
+    .danger { background:#ff7d7d; color:white; }
+
+    .word-display { text-align:center; font-size:clamp(2.1rem,11vw,4rem); letter-spacing:.1em; margin:8px 0 14px; font-weight:1000; color:#7751b5; }
+    .trace-picture { text-align:center; font-size:4.5rem; line-height:1; margin:2px 0 4px; filter:drop-shadow(0 4px 0 rgba(255,255,255,.8)); }
+    .trace-progress { display:flex; flex-wrap:nowrap; justify-content:center; gap:7px; margin:8px auto 12px; width:100%; overflow:hidden; }
+    .trace-progress-box { width:clamp(42px,14vw,58px); height:clamp(46px,15vw,62px); flex:0 1 58px; border-radius:15px; border:3px solid #c7b3eb; background:#fff; display:grid; place-items:center; font-size:clamp(1.35rem,7vw,2rem); font-weight:1000; color:#69449f; }
+    .trace-progress-box.waiting { color:rgba(105,68,159,.22); border-style:dashed; }
+    .trace-progress-box.current { outline:5px solid #ffd65e; transform:scale(1.05); }
+    .trace-current-label { text-align:center; margin:0 0 8px; font-weight:1000; color:#7751b5; font-size:1.05rem; }
+    .canvas-wrap { position:relative; width:min(100%,560px); height:min(45vh,330px); min-height:270px; margin:0 auto; border-radius:28px; background:#fff; box-shadow:inset 0 0 0 4px #eadfff; overflow:hidden; }
+    #traceCanvas { width:100%; height:100%; touch-action:none; }
+    .trace-guide { position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; font-size:clamp(11rem,55vw,17rem); line-height:.8; font-weight:1000; color:rgba(123,81,181,.14); text-transform:uppercase; white-space:nowrap; padding:0 10px 14px; }
+
+    .slots { display:flex; justify-content:center; flex-wrap:nowrap; gap:clamp(4px,1.6vw,9px); width:100%; margin:14px 0 18px; overflow:hidden; }
+    .slot { position:relative; flex:1 1 0; min-width:0; max-width:64px; height:clamp(54px,18vw,70px); border-radius:clamp(10px,4vw,16px); border:clamp(2px,1vw,4px) dashed #aa94d8; background:#fff; display:grid; place-items:center; font-size:clamp(1.25rem,8vw,2.1rem); font-weight:1000; padding:0; color:#67439c; }
+    .slot-guide { color:rgba(103,67,156,.22); }
+    .slot.filled { border-style:solid; border-color:#7ed9af; background:#effff7; }
+    .slot.filled .slot-guide { color:#67439c; }
+    .letter-tile { min-width:58px; height:64px; border-radius:18px; background:#fff; box-shadow:0 6px 14px rgba(61,43,91,.16); font-size:1.8rem; font-weight:1000; }
+    .letter-tile.used { opacity:.25; }
+
+    .patient { text-align:center; }
+    .patient-scene { position:relative; width:min(100%,360px); height:310px; margin:0 auto 12px; border-radius:30px; overflow:hidden; background:linear-gradient(#d9f5ff 0 62%,#c8efb0 63%); box-shadow:inset 0 0 0 4px rgba(255,255,255,.8); }
+    .patient-photo-shell { position:absolute; top:18px; left:50%; transform:translateX(-50%); width:118px; height:118px; border-radius:50%; background:white; border:6px solid white; box-shadow:0 7px 18px rgba(58,45,87,.18); overflow:hidden; display:grid; place-items:center; z-index:3; }
+    .patient-photo { width:100%; height:100%; object-fit:cover; display:none; }
+    .patient-face { font-size:5.4rem; line-height:1; }
+    .patient-body { position:absolute; left:50%; bottom:18px; transform:translateX(-50%); width:170px; height:165px; border-radius:70px 70px 28px 28px; background:linear-gradient(135deg,#ff9fca,#9adcf7); border:5px solid white; box-shadow:0 7px 18px rgba(58,45,87,.14); }
+    .patient-body:before,.patient-body:after { content:""; position:absolute; top:38px; width:58px; height:116px; border-radius:30px; background:#f1b995; border:4px solid white; }
+    .patient-body:before { left:-38px; transform:rotate(8deg); }
+    .patient-body:after { right:-38px; transform:rotate(-8deg); }
+    .treatment-spot { position:absolute; width:62px; height:62px; border-radius:50%; background:rgba(255,255,255,.74); border:5px dashed #ff4f9a; z-index:8; font-size:1.8rem; display:none; place-items:center; animation:spotPulse 1s infinite; }
+    .treatment-spot.ready { display:grid; }
+    @keyframes spotPulse { 50% { transform:scale(1.12); box-shadow:0 0 0 12px rgba(255,79,154,.16); } }
+    .doctor-effect { position:absolute; z-index:10; font-size:3rem; transform:translate(-50%,-50%); filter:drop-shadow(0 4px 2px rgba(0,0,0,.2)); pointer-events:none; }
+    .doctor-result { min-height:46px; margin-top:10px; padding:10px; border-radius:18px; background:#eefbea; font-size:1rem; font-weight:1000; }
+    .boo-boo { font-size:1.12rem; font-weight:1000; background:#fff0f0; padding:10px; border-radius:18px; }
+    .tool-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:14px; }
+    .tool { min-height:104px; border-radius:22px; background:white; box-shadow:var(--shadow); font-size:2.7rem; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:6px; }
+    .tool span { font-size:.78rem; line-height:1.05; font-weight:1000; }
+    .tool.selected { outline:6px solid var(--pink); transform:scale(1.04); }
+
+    .stage {
+      position:relative;
+      height:320px;
+      border-radius:28px;
+      overflow:hidden;
+      background:linear-gradient(#7c5fc7 0 45%,#efb8d9 46% 55%,#5e376d 56%);
+      box-shadow:inset 0 -18px 0 rgba(0,0,0,.12),var(--shadow);
+    }
+    .stage:before,.stage:after { content:""; position:absolute; top:-40px; width:110px; height:230px; background:rgba(255,255,255,.18); transform:rotate(20deg); }
+    .stage:before{left:20px}.stage:after{right:20px;transform:rotate(-20deg)}
+    .runway-person { --skin-tone:#8c5d45; position:absolute; left:50%; bottom:25px; transform:translateX(-50%); width:150px; height:250px; transition:.25s; }
+    .runway-person.walk { animation:walkstage 3s ease-in-out; }
+    @keyframes walkstage { 0%{left:18%;transform:translateX(-50%) scale(.72)} 50%{left:50%;transform:translateX(-50%) scale(1)} 100%{left:82%;transform:translateX(-50%) scale(.72)} }
+    .head { position:absolute; left:50%; top:22px; transform:translateX(-50%); width:72px; height:82px; border-radius:45% 45% 48% 48%; background:var(--skin-tone); z-index:3; box-shadow:inset 0 -5px rgba(0,0,0,.08); }
+    .hair { position:absolute; left:50%; top:10px; transform:translateX(-50%); width:92px; height:105px; border-radius:48px 48px 24px 24px; background:#35231d; z-index:2; transition:.2s; }
+    .hair.short { width:83px; height:58px; border-radius:44px 44px 22px 22px; }
+    .hair.bob { width:92px; height:105px; border-radius:48px 48px 26px 26px; }
+    .hair.long { width:104px; height:154px; border-radius:50px 50px 31px 31px; }
+    .hair.curls { width:104px; height:132px; border-radius:52px 52px 38px 38px; background:radial-gradient(circle at 18px 18px,#35231d 0 16px,transparent 17px),radial-gradient(circle at 50px 18px,#35231d 0 17px,transparent 18px),radial-gradient(circle at 82px 18px,#35231d 0 16px,transparent 17px),radial-gradient(circle at 25px 50px,#35231d 0 19px,transparent 20px),radial-gradient(circle at 65px 52px,#35231d 0 21px,transparent 22px),#35231d; }
+    .doll-choice-row { display:flex; flex-wrap:nowrap; overflow:auto; gap:9px; padding:3px 2px 10px; justify-content:flex-start; }
+    .doll-choice { flex:0 0 62px; min-height:58px; border-radius:18px; background:#fff; box-shadow:0 5px 13px rgba(61,43,91,.14); display:grid; place-items:center; font-size:1.9rem; border:4px solid #fff; }
+    .doll-choice.selected { outline:5px solid #ffd65e; }
+    .skin-swatch { width:48px; height:48px; border-radius:50%; box-shadow:inset 0 0 0 3px rgba(255,255,255,.8); }
+    .eyes { position:absolute; top:43px; left:20px; width:8px; height:8px; background:#221d29; border-radius:50%; box-shadow:25px 0 #221d29; }
+    .smile { position:absolute; left:50%; bottom:15px; transform:translateX(-50%); width:28px; height:12px; border-bottom:4px solid #7a2943; border-radius:0 0 20px 20px; }
+    .gown { position:absolute; left:50%; bottom:0; transform:translateX(-50%); width:124px; height:170px; clip-path:polygon(38% 0,62% 0,100% 100%,0 100%); background:linear-gradient(135deg,#ff4f9a,#ff92c5); z-index:1; box-shadow:inset 0 -18px rgba(255,255,255,.18); overflow:hidden; }
+    .gown-decoration { position:absolute; inset:28px 8px 8px; display:grid; place-items:center; align-content:center; font-size:2.25rem; line-height:1.15; letter-spacing:.08em; text-align:center; text-shadow:0 2px 3px rgba(255,255,255,.65); }
+    .crown { position:absolute; left:50%; top:-7px; transform:translateX(-50%); font-size:3.1rem; z-index:5; }
+    .stage-title { position:absolute; top:12px; left:50%; transform:translateX(-50%); color:white; font-weight:1000; text-shadow:0 2px 4px #38223f; white-space:nowrap; }
+    .swatch { width:58px; height:58px; border-radius:18px; box-shadow:var(--shadow); border:4px solid #fff; }
+
+    .find-scene { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:12px; background:linear-gradient(#bfeaff 0 55%,#b7e889 56%); border-radius:28px; min-height:330px; align-content:center; }
+    .find-item { min-height:66px; font-size:2.7rem; background:rgba(255,255,255,.62); border-radius:18px; }
+    .target-card { text-align:center; font-size:1.25rem; font-weight:1000; }
+
+    .sequence { display:flex; justify-content:center; align-items:center; gap:8px; font-size:3.2rem; margin:20px 0; flex-wrap:wrap; }
+    .missing { width:76px; height:76px; border:5px dashed #9879d0; border-radius:20px; display:grid; place-items:center; color:#9879d0; }
+
+    .camera-stage { position:relative; width:100%; max-width:560px; aspect-ratio:3/4; margin:auto; background:#171724; border-radius:28px; overflow:hidden; box-shadow:var(--shadow); }
+    #cameraVideo { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
+    #cameraOverlay { position:absolute; inset:0; pointer-events:none; display:flex; align-items:flex-start; justify-content:center; font-size:6rem; padding-top:10%; filter:drop-shadow(0 4px 2px rgba(0,0,0,.35)); }
+    .camera-tools { display:flex; gap:8px; overflow:auto; padding:12px 2px; }
+    .filter-btn { flex:0 0 68px; height:68px; border-radius:20px; background:white; font-size:2.2rem; box-shadow:var(--shadow); }
+    .camera-actions { display:flex; justify-content:center; gap:12px; align-items:center; }
+    .shutter { width:78px; height:78px; border-radius:50%; background:white; border:8px solid var(--pink); box-shadow:var(--shadow); }
+    #photoPreview { width:100%; border-radius:24px; display:none; margin-top:12px; }
+
+    .puzzle-board { display:grid; gap:4px; width:min(100%,520px); aspect-ratio:1; margin:auto; background:#6c589a; padding:5px; border-radius:24px; overflow:hidden; }
+    .puzzle-tile { background-repeat:no-repeat; border-radius:10px; position:relative; transition:transform .16s, outline .16s; }
+    .puzzle-tile.selected { outline:6px solid #ffd75e; z-index:2; }
+    .upload-label { display:inline-flex; align-items:center; justify-content:center; min-height:58px; padding:10px 18px; border-radius:18px; background:white; box-shadow:var(--shadow); font-weight:1000; }
+    .upload-label input { display:none; }
+
+    .studio-pad { position:relative; min-height:430px; border-radius:30px; overflow:hidden; background:radial-gradient(circle at center,#fff 0 5%,#ffd3eb 28%,#bdeaff 58%,#d9ffc4 100%); box-shadow:var(--shadow); touch-action:none; }
+    .studio-center { position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; font-size:1.25rem; font-weight:1000; text-align:center; padding:40px; }
+    .wave { position:absolute; width:20px; height:20px; border:8px solid currentColor; border-radius:50%; transform:translate(-50%,-50%); pointer-events:none; animation:ripple 1.15s ease-out forwards; }
+    @keyframes ripple { to { width:310px; height:310px; opacity:0; border-width:2px; } }
+    .recording { animation:pulse 1s infinite; }
+    @keyframes pulse { 50%{transform:scale(1.08);box-shadow:0 0 0 14px rgba(255,90,115,.18)} }
+
+    .family-strip { display:flex; gap:8px; overflow:auto; padding:2px 0 12px; }
+    .family-chip { flex:0 0 auto; min-width:94px; min-height:74px; border-radius:20px; background:white; box-shadow:var(--shadow); font-weight:1000; display:flex; align-items:center; justify-content:center; gap:7px; padding:7px; }
+    .family-chip img { width:48px; height:48px; border-radius:50%; object-fit:cover; border:3px solid #fff; box-shadow:0 2px 8px rgba(61,43,91,.18); }
+    .adult-home-button { display:block; margin:16px auto 4px; min-height:46px; border-radius:18px; padding:8px 16px; background:rgba(255,255,255,.82); color:#665879; font-size:.88rem; font-weight:900; box-shadow:0 5px 14px rgba(61,43,91,.12); }
+    .settings-grid { display:grid; gap:12px; }
+    .photo-card { display:grid; grid-template-columns:74px 1fr auto; align-items:center; gap:10px; background:white; border-radius:22px; padding:10px; box-shadow:0 6px 16px rgba(61,43,91,.12); }
+    .photo-card img,.photo-placeholder { width:66px; height:66px; border-radius:50%; object-fit:cover; background:#f1eaff; display:grid; place-items:center; font-size:2rem; }
+    .photo-card strong { font-size:1.05rem; }
+    .small-upload { min-width:58px; min-height:52px; border-radius:16px; background:#fff3a8; display:grid; place-items:center; font-size:1.6rem; }
+    .small-upload input { display:none; }
+    .voice-row { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center; }
+    .voice-select { min-width:0; width:100%; min-height:54px; border:0; border-radius:18px; padding:8px 10px; background:white; box-shadow:var(--shadow); color:var(--ink); font-weight:900; }
+
+    .toast {
+      position:fixed;
+      left:50%;
+      bottom:calc(26px + env(safe-area-inset-bottom));
+      transform:translateX(-50%) translateY(130px);
+      background:#4b386d;
+      color:white;
+      padding:14px 22px;
+      border-radius:22px;
+      font-weight:1000;
+      z-index:100;
+      transition:.25s;
+      text-align:center;
+      max-width:90vw;
+    }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+    .confetti { position:fixed; inset:0; pointer-events:none; z-index:90; overflow:hidden; }
+    .confetti i { position:absolute; top:-20px; font-style:normal; animation:fall 1.7s linear forwards; }
+    @keyframes fall { to { transform:translateY(110vh) rotate(720deg); opacity:.2; } }
+
+    .adult-note { font-size:.83rem; opacity:.72; text-align:center; margin-top:10px; }
+    .hidden { display:none !important; }
+
+    @media (min-width:700px) {
+      .game-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .game-card { min-height:150px; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <section id="home" class="screen active">
+    <div class="home-hero">
+      <div class="mascot">🌈</div>
+      <h1>Rozzie’s<br>Playhouse</h1>
+      <p class="subtitle">Tap a picture to play!</p>
+    </div>
+    <div class="home-scroll">
+      <div class="game-grid">
+        <button class="game-card c1" data-open="trace"><span class="emoji">✏️</span><span>Trace & Write</span></button>
+        <button class="game-card c2" data-open="words"><span class="emoji">🔤</span><span>Build a Word</span></button>
+        <button class="game-card c3" data-open="doctor"><span class="emoji">🩺</span><span>Doctor Rozzie</span></button>
+        <button class="game-card c4" data-open="runway"><span class="emoji">👑</span><span>Royal Runway</span></button>
+        <button class="game-card c5" data-open="find"><span class="emoji">🔍</span><span>Find It!</span></button>
+        <button class="game-card c6" data-open="logic"><span class="emoji">🧩</span><span>What Comes Next?</span></button>
+        <button class="game-card c7" data-open="camera"><span class="emoji">📸</span><span>Funny Face Camera</span></button>
+        <button class="game-card c8" data-open="puzzle"><span class="emoji">🖼️</span><span>Picture Puzzle</span></button>
+        <button class="game-card c9" data-open="studio"><span class="emoji">🎨</span><span>Sound & Color</span></button>
+      </div>
+      <button class="adult-home-button" data-open="grownup">⚙️ Grown-up pictures & voice</button>
+    </div>
+  </section>
+
+  <section id="trace" class="screen">
+    <div class="topbar"><button class="icon-btn home-btn">🏠</button><h2>Trace a Letter</h2><button class="icon-btn speak-button" id="traceSpeak">🔊</button></div>
+    <div class="content">
+      <div class="panel">
+        <div class="family-strip" id="traceFamily"></div>
+        <div class="trace-picture" id="tracePicture">🐪</div>
+        <div class="word-display" id="traceWord">CAMEL</div>
+        <div class="trace-progress" id="traceProgress"></div>
+        <div class="trace-current-label" id="traceCurrentLabel">Trace C</div>
+        <div class="canvas-wrap"><div class="trace-guide" id="traceGuide">C</div><canvas id="traceCanvas"></canvas></div>
+        <div class="big-row" style="margin-top:14px">
+          <button class="big-choice" id="clearTrace">🧽</button>
+          <button class="big-choice sunny" id="nextTrace">➡️</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="words" class="screen">
+    <div class="topbar"><button class="icon-btn home-btn">🏠</button><h2>Build a Word</h2><button class="icon-btn speak-button" id="wordSpeak">🔊</button></div>
+    <div class="content">
+      <div class="panel">
+        <p class="instruction">Tap a letter. Then tap its space.</p>
+        <div class="word-display" id="wordPicture">🐪</div>
+        <div class="slots" id="wordSlots"></div>
+        <div class="big-row" id="letterBank"></div>
+        <div class="big-row" style="margin-top:18px"><button class="big-choice sunny" id="nextWord">➡️</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="doctor" class="screen">
+    <div class="topbar"><button class="icon-btn home-btn">🏠</button><h2>Doctor Rozzie</h2><button class="icon-btn speak-button" id="doctorSpeak">🔊</button></div>
+    <div class="content">
+      <div class="panel patient">
+        <div class="patient-scene" id="patientScene">
+          <div class="patient-photo-shell"><img class="patient-photo" id="patientPhoto" alt=""><div class="patient-face" id="patientFace">🙂</div></div>
+          <div class="patient-body"></div>
+          <button class="treatment-spot" id="treatmentSpot" aria-label="Tap here"></button>
+          <div class="doctor-effect" id="doctorEffect"></div>
+        </div>
+        <h3 id="patientName">Nana</h3>
+        <div class="boo-boo" id="doctorProblem">Nana has a little scrape.</div>
+        <div class="doctor-result" id="doctorResult">Choose a doctor tool.</div>
+        <div class="tool-grid" id="doctorTools"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="runway" class="screen">
+    <div class="topbar"><button class="icon-btn home-btn">🏠</button><h2>Royal Runway</h2><button class="icon-btn speak-button" data-say="Pick a gown and a crown. Then tap the stage button.">🔊</button></div>
+    <div class="content">
+      <div class="panel">
+        <p class="instruction">Pick a doll</p>
+        <div class="doll-choice-row" id="skinChoices"></div>
+        <div class="doll-choice-row" id="hairChoices"></div>
+        <div class="big-row" style="margin:4px 0 14px"><button class="big-choice primary" id="walkStage">✨ Walk ✨</button></div>
+        <div class="stage"><div class="stage-title">Rozzie’s Royal Runway</div><div class="runway-person" id="runwayPerson"><div class="hair bob" id="avatarHair"></div><div class="head"><div class="eyes"></div><div class="smile"></div></div><div class="crown" id="avatarCrown">👑</div><div class="gown" id="avatarGown"><div class="gown-decoration" id="avatarDecoration">✨</div></div></div></div>
+        <p class="instruction" style="margin-top:14px">Tap a gown</p>
+        <div class="big-row" id="gownColors"></div>
+        <p class="instruction" style="margin-top:14px">Tap a crown</p>
+        <div class="big-row" id="crownChoices"></div>
+        <p class="instruction" style="margin-top:14px">Tap gown decorations</p>
+        <div class="big-row" id="gownDecorations"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="find" class="screen">
+    <div class="topbar"><button class="icon-btn home-btn">🏠</button><h2>Find It!</h2><button class="icon-btn speak-button" id="findSpeak">🔊</button></div>
+    <div class="content">
+      <div class="panel">
+        <div class="target-card" id="findTarget">Find the camel 🐪</div>
+        <div class="find-scene" id="findScene"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="logic" class="screen">
+    <div class="topbar"><button class="icon-btn home-btn">🏠</button><h2>What Comes Next?</h2><button class="icon-btn speak-button" id="logicSpeak">🔊</button></div>
+    <div class="content">
+      <div class="panel">
+        <p class="instruction">Tap the picture that comes next.</p>
+        <div class="sequence" id="logicSequence"></div>
+        <div class="big-row" id="logicChoices"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="camera" class="screen">
+    <div class="topbar"><button class="icon-btn home-btn">🏠</button><h2>Funny Face Camera</h2><button class="icon-btn speak-button" data-say="Tap a funny filter, then tap the big camera button.">🔊</button></div>
+    <div class="content">
+      <div class="panel">
+        <div class="camera-stage"><video id="cameraVideo" autoplay playsinline muted></video><div id="cameraOverlay">👑</div></div>
+        <div class="camera-tools" id="cameraFilters"></div>
+        <div class="camera-actions"><button class="big-choice" id="switchCamera">🔄</button><button class="shutter" id="takePhoto" aria-label="Take photo"></button><button class="big-choice" id="closeCamera">⏹️</button></div>
+        <canvas id="photoCanvas" class="hidden"></canvas>
+        <img id="photoPreview" alt="Your funny picture" />
+        <p class="adult-note">Pictures stay on this device. Nothing is uploaded.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="puzzle" class="screen">
+    <div class="topbar"><button class="icon-btn home-btn">🏠</button><h2>Picture Puzzle</h2><button class="icon-btn speak-button" data-say="Tap a piece. Tap it again to turn it. Tap another piece to switch places.">🔊</button></div>
+    <div class="content">
+      <div class="panel">
+        <div class="big-row" style="margin-bottom:12px">
+          <label class="upload-label">📷 Pick a Picture<input id="puzzleUpload" type="file" accept="image/*"></label>
+          <select class="big-choice" id="puzzleSize" aria-label="Puzzle size"><option value="4">4 pieces</option><option value="6">6 pieces</option><option value="8" selected>8 pieces</option></select>
+        </div>
+        <div class="puzzle-board" id="puzzleBoard"></div>
+        <div class="big-row" style="margin-top:14px"><button class="big-choice sunny" id="mixPuzzle">🔀 Mix</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="studio" class="screen">
+    <div class="topbar"><button class="icon-btn home-btn">🏠</button><h2>Sound & Color</h2><button class="icon-btn speak-button" data-say="Record a name. Then tap anywhere to make colorful sounds.">🔊</button></div>
+    <div class="content">
+      <div class="panel">
+        <div class="big-row" style="margin-bottom:12px">
+          <button class="big-choice danger" id="recordName">🎙️</button>
+          <button class="big-choice" id="playName">▶️</button>
+          <button class="big-choice" id="clearName">🗑️</button>
+        </div>
+        <div class="studio-pad" id="studioPad"><div class="studio-center" id="studioText">Tap the microphone and say “Rozzie!”</div></div>
+        <p class="adult-note">Microphone recordings stay in this browser only.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="grownup" class="screen">
+    <div class="topbar"><button class="icon-btn home-btn">🏠</button><h2>Grown-up Setup</h2><button class="icon-btn speak-button" id="voiceTestTop">🔊</button></div>
+    <div class="content">
+      <div class="panel">
+        <p class="instruction">Choose the nicest voice available on this phone.</p>
+        <div class="voice-row"><select id="voiceSelect" class="voice-select" aria-label="Voice"></select><button class="big-choice" id="voiceTest">🔊</button></div>
+        <p class="adult-note">The app automatically spells Rozzie’s name for the voice as “Roz-zee.” Available voices depend on the phone.</p>
+      </div>
+      <div class="panel">
+        <p class="instruction">Add family pictures</p>
+        <div class="settings-grid" id="familyPhotoCards"></div>
+        <p class="adult-note">Tap the yellow picture button beside a name. Pictures are resized and stay only in this browser.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="confetti" id="confetti"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const family = ['Rozzie','Rosalyn','Mommy','Daddy','Nana','Auntie','Nessa','Grandma','Grandpa'];
+  const wordItems = [
+    ['camel','🐪'],['pig','🐷'],['Peppa','🐷'],['cat','🐱'],['dog','🐶'],['sun','☀️'],['moon','🌙'],['star','⭐'],['ball','⚽'],['doll','🪆'],
+    ['book','📚'],['bed','🛏️'],['cup','🥤'],['hat','🎩'],['shoe','👟'],['sock','🧦'],['hand','✋'],['foot','🦶'],['nose','👃'],['eye','👁️'],
+    ['ear','👂'],['hair','💇'],['apple','🍎'],['pear','🍐'],['milk','🥛'],['bread','🍞'],['egg','🥚'],['fish','🐟'],['bird','🐦'],['duck','🦆'],
+    ['cow','🐮'],['horse','🐴'],['sheep','🐑'],['frog','🐸'],['bee','🐝'],['bug','🐞'],['tree','🌳'],['flower','🌸'],['rain','🌧️'],['snow','❄️'],
+    ['car','🚗'],['bus','🚌'],['bike','🚲'],['boat','⛵'],['train','🚂'],['plane','✈️'],['home','🏠'],['park','🏞️'],['school','🏫'],['bath','🛁'],
+    ['soap','🧼'],['towel','🧻'],['brush','🪥'],['hug','🤗'],['kiss','💋'],['jump','🤸'],['run','🏃'],['walk','🚶'],['dance','💃'],['sing','🎤'],
+    ['happy','😄'],['sad','😢'],['love','❤️'],['baby','👶'],['friend','🧒'],['family','👨‍👩‍👧'],['pink','🩷'],['red','🔴'],['blue','🔵'],['green','🟢'],
+    ['yellow','🟡'],['orange','🟠'],['purple','🟣'],['black','⚫'],['white','⚪'],['one','1️⃣'],['two','2️⃣'],['three','3️⃣'],['four','4️⃣'],['five','5️⃣'],
+    ['cake','🎂'],['cookie','🍪'],['juice','🧃'],['water','💧'],['cheese','🧀'],['corn','🌽'],['rice','🍚'],['spoon','🥄'],['fork','🍴'],['plate','🍽️'],
+    ['shirt','👕'],['dress','👗'],['coat','🧥'],['pants','👖'],['crown','👑'],['doctor','🩺'],['heart','💖'],['rainbow','🌈'],['cloud','☁️'],['teddy','🧸']
+  ];
+
+  const beginnerWordItems = [
+    ['cat','🐱'],['dog','🐶'],['pig','🐷'],['cow','🐮'],['bee','🐝'],['bug','🐞'],['fox','🦊'],['hen','🐔'],['owl','🦉'],['ant','🐜'],
+    ['bat','🦇'],['duck','🦆'],['frog','🐸'],['fish','🐟'],['bird','🐦'],['bear','🐻'],['lion','🦁'],['goat','🐐'],['crab','🦀'],['seal','🦭'],
+    ['sun','☀️'],['moon','🌙'],['star','⭐'],['ball','⚽'],['doll','🪆'],['book','📚'],['bed','🛏️'],['cup','🥤'],['hat','🎩'],['shoe','👟'],
+    ['sock','🧦'],['hand','✋'],['foot','🦶'],['nose','👃'],['eye','👁️'],['ear','👂'],['milk','🥛'],['egg','🥚'],['car','🚗'],['bus','🚌'],
+    ['boat','⛵'],['home','🏠'],['park','🏞️'],['bath','🛁'],['soap','🧼'],['hug','🤗'],['kiss','💋'],['jump','🤸'],['run','🏃'],['walk','🚶']
+  ];
+
+  const traceItems = [
+    ['mom','👩'],['dad','👨'],['nana','👵'],
+    ...beginnerWordItems,
+    ['camel','🐪']
+  ];
+
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
+  let currentScreen = 'home';
+  let toastTimer;
+
+  function showToast(message) {
+    const el = $('#toast');
+    el.textContent = message;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 1700);
+  }
+
+  let availableVoices = [];
+  let chosenVoiceName = localStorage.getItem('rozzieVoiceName') || '';
+
+  function speechText(text) {
+    return String(text)
+      .replace(/\bRozzie’s\b/gi, "Roz-zee's")
+      .replace(/\bRozzie\b/gi, 'Roz-zee')
+      .replace(/\bRosalyn\b/gi, 'Roz-a-lynn');
+  }
+
+  function scoreVoice(voice) {
+    const name = (voice.name || '').toLowerCase();
+    let score = 0;
+    if (/en-us|en_us/i.test(voice.lang || '')) score += 20;
+    else if (/^en/i.test(voice.lang || '')) score += 10;
+    if (/natural|enhanced|premium|neural|google us english|samantha|ava|aria|jenny|zira|susan|karen/i.test(name)) score += 35;
+    if (/female|woman/i.test(name)) score += 8;
+    if (/espeak|compact|robot/i.test(name)) score -= 20;
+    if (voice.localService) score += 2;
+    return score;
+  }
+
+  function refreshVoices() {
+    if (!('speechSynthesis' in window)) return;
+    availableVoices = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang || ''));
+    availableVoices.sort((a,b) => scoreVoice(b) - scoreVoice(a));
+    const select = $('#voiceSelect');
+    if (select) {
+      select.innerHTML = '';
+      availableVoices.forEach(v => {
+        const option = document.createElement('option');
+        option.value = v.name;
+        option.textContent = `${v.name} (${v.lang})`;
+        select.appendChild(option);
+      });
+      const chosen = availableVoices.find(v => v.name === chosenVoiceName) || availableVoices[0];
+      if (chosen) { chosenVoiceName = chosen.name; select.value = chosen.name; }
+      if (!availableVoices.length) select.innerHTML = '<option>Phone default voice</option>';
+    }
+  }
+
+  function speak(text, onEnd) {
+    if (!('speechSynthesis' in window)) { if (onEnd) onEnd(); return; }
+    speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(speechText(text));
+    const voice = availableVoices.find(v => v.name === chosenVoiceName) || availableVoices[0];
+    if (voice) utterance.voice = voice;
+    utterance.rate = 0.93;
+    utterance.pitch = 1.0;
+    utterance.volume = 1;
+    if (onEnd) {
+      let finished = false;
+      const done = () => { if (finished) return; finished = true; onEnd(); };
+      utterance.onend = done;
+      utterance.onerror = done;
+    }
+    speechSynthesis.speak(utterance);
+  }
+
+  refreshVoices();
+  if ('speechSynthesis' in window) { speechSynthesis.onvoiceschanged = refreshVoices; }
+
+  function celebrate(message='Great job, Rozzie!') {
+    showToast(message);
+    speak(message);
+    const box = $('#confetti');
+    box.innerHTML = '';
+    const bits = ['⭐','💖','🌈','✨','🌸','🫧'];
+    for (let i=0;i<28;i++) {
+      const item = document.createElement('i');
+      item.textContent = bits[i % bits.length];
+      item.style.left = Math.random()*100 + 'vw';
+      item.style.fontSize = (18 + Math.random()*20) + 'px';
+      item.style.animationDelay = (Math.random()*.35) + 's';
+      box.appendChild(item);
+    }
+    setTimeout(() => box.innerHTML='', 2200);
+  }
+
+  function openScreen(id) {
+    $$('.screen').forEach(s => s.classList.toggle('active', s.id === id));
+    currentScreen = id;
+    if (id !== 'camera') stopCamera();
+    if (id === 'camera') startCamera();
+    if (id === 'trace') { requestAnimationFrame(resizeTraceCanvas); setTimeout(() => showTraceLetter(true), 80); }
+    if (id === 'words') setupWord(true);
+    if (id === 'doctor') setupDoctor();
+    window.scrollTo(0,0);
+  }
+
+  $$('[data-open]').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.open;
+    openScreen(id);
+    const names = {trace:'Trace and Write',words:'Build a Word',doctor:'Doctor Rozzie',runway:'Royal Runway',find:'Find It',logic:'What Comes Next',camera:'Funny Face Camera',puzzle:'Picture Puzzle',studio:'Sound and Color',grownup:'Grown-up Setup'};
+    if (!['doctor','trace','words'].includes(id)) speak(`Let's play ${names[id]}.`);
+  }));
+  $$('.home-btn').forEach(btn => btn.addEventListener('click', () => openScreen('home')));
+  $$('[data-say]').forEach(btn => btn.addEventListener('click', () => speak(btn.dataset.say)));
+
+  // Trace game — one large letter at a time
+  let traceIndex = 0;
+  let traceLetterIndex = 0;
+  const traceCanvas = $('#traceCanvas');
+  const traceCtx = traceCanvas.getContext('2d');
+  let traceDrawing = false;
+  let traceDistance = 0;
+  let lastPoint = null;
+  let traceAdvanceTimer = null;
+
+  function resizeTraceCanvas() {
+    const rect = traceCanvas.getBoundingClientRect();
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    traceCanvas.width = rect.width * dpr;
+    traceCanvas.height = rect.height * dpr;
+    traceCtx.setTransform(dpr,0,0,dpr,0,0);
+    traceCtx.lineCap = 'round';
+    traceCtx.lineJoin = 'round';
+    traceCtx.strokeStyle = '#ff62a5';
+    traceCtx.lineWidth = 20;
+  }
+  function clearTraceCanvas() {
+    traceCtx.clearRect(0,0,traceCanvas.width,traceCanvas.height);
+    traceDistance = 0;
+    lastPoint = null;
+  }
+  function renderTraceProgress() {
+    const [word] = traceItems[traceIndex];
+    const letters = word.toUpperCase().split('');
+    const row = $('#traceProgress');
+    row.innerHTML = '';
+    letters.forEach((letter, i) => {
+      const box = document.createElement('div');
+      box.className = 'trace-progress-box';
+      if (i < traceLetterIndex) box.textContent = letter;
+      else { box.textContent = letter; box.classList.add('waiting'); }
+      if (i === traceLetterIndex) box.classList.add('current');
+      row.appendChild(box);
+    });
+  }
+  function showTraceLetter(announce=true) {
+    clearTimeout(traceAdvanceTimer);
+    const [word, picture] = traceItems[traceIndex];
+    const letters = word.toUpperCase().split('');
+    const letter = letters[traceLetterIndex];
+    $('#tracePicture').textContent = picture;
+    $('#traceWord').textContent = word.toUpperCase();
+    $('#traceGuide').textContent = letter;
+    $('#traceCurrentLabel').textContent = `Trace ${letter}`;
+    renderTraceProgress();
+    clearTraceCanvas();
+    $('#traceSpeak').onclick = () => speak(`${word}. Trace the letter ${letter}.`);
+    if (announce) speak(`${word}. Trace the letter ${letter}.`);
+  }
+  function setTraceItem(index, announce=true) {
+    traceIndex = (index + traceItems.length) % traceItems.length;
+    traceLetterIndex = 0;
+    showTraceLetter(announce);
+  }
+  function finishTraceLetter() {
+    const [word] = traceItems[traceIndex];
+    const letters = word.toUpperCase().split('');
+    const finishedLetter = letters[traceLetterIndex];
+    traceLetterIndex += 1;
+    renderTraceProgress();
+    clearTraceCanvas();
+    if (traceLetterIndex >= letters.length) {
+      celebrateVisualOnly();
+      speak(`You traced ${word}!`, () => {
+        traceAdvanceTimer = setTimeout(() => { if (currentScreen==='trace') setTraceItem(traceIndex + 1); }, 700);
+      });
+    } else {
+      const nextLetter = letters[traceLetterIndex];
+      $('#traceGuide').textContent = nextLetter;
+      $('#traceCurrentLabel').textContent = `Trace ${nextLetter}`;
+      renderTraceProgress();
+      speak(`${finishedLetter}. Now trace ${nextLetter}.`);
+    }
+  }
+  function tracePoint(e) {
+    const rect = traceCanvas.getBoundingClientRect();
+    const p = {x:e.clientX-rect.left,y:e.clientY-rect.top};
+    if (lastPoint) traceDistance += Math.hypot(p.x-lastPoint.x,p.y-lastPoint.y);
+    lastPoint = p;
+    return p;
+  }
+  traceCanvas.addEventListener('pointerdown', e => {
+    traceDrawing=true;
+    traceCanvas.setPointerCapture(e.pointerId);
+    const p=tracePoint(e);
+    traceCtx.beginPath();
+    traceCtx.moveTo(p.x,p.y);
+  });
+  traceCanvas.addEventListener('pointermove', e => {
+    if(!traceDrawing)return;
+    const p=tracePoint(e);
+    traceCtx.lineTo(p.x,p.y);
+    traceCtx.stroke();
+  });
+  traceCanvas.addEventListener('pointerup', () => {
+    traceDrawing=false;
+    lastPoint=null;
+    if(traceDistance>260) finishTraceLetter();
+  });
+  traceCanvas.addEventListener('pointercancel', () => { traceDrawing=false; lastPoint=null; });
+  $('#clearTrace').addEventListener('click', clearTraceCanvas);
+  $('#nextTrace').addEventListener('click', () => setTraceItem(traceIndex + 1));
+  let familyPhotos = {};
+  try { familyPhotos = JSON.parse(localStorage.getItem('rozzieFamilyPhotos') || '{}'); } catch (e) { familyPhotos = {}; }
+  function renderTraceFamily() {
+    const quick = [['Mom','mom','Mommy'],['Dad','dad','Daddy'],['Nana','nana','Nana'],['Camel','camel','Camel']];
+    $('#traceFamily').innerHTML = '';
+    quick.forEach(([label, word, photoName]) => {
+      const b=document.createElement('button'); b.className='family-chip';
+      if (familyPhotos[photoName]) {
+        const img=document.createElement('img'); img.src=familyPhotos[photoName]; img.alt=''; b.appendChild(img);
+      }
+      const span=document.createElement('span'); span.textContent=label; b.appendChild(span);
+      b.addEventListener('click',()=>{
+        const idx = traceItems.findIndex(item => item[0].toLowerCase() === word.toLowerCase());
+        if (idx >= 0) setTraceItem(idx);
+      });
+      $('#traceFamily').appendChild(b);
+    });
+  }
+  renderTraceFamily();
+  addEventListener('resize', resizeTraceCanvas);
+  setTimeout(() => { resizeTraceCanvas(); setTraceItem(0, false); }, 60);
+
+  // Build word — beginner words with matching guide letters
+  let wordIndex = 0;
+  let selectedLetter = null;
+  let built = [];
+  function shuffled(arr) { return [...arr].sort(()=>Math.random()-.5); }
+  function setupWord(announce=true) {
+    selectedLetter = null;
+    const [word,emoji] = beginnerWordItems[wordIndex];
+    built = Array(word.length).fill('');
+    $('#wordPicture').textContent = emoji;
+    $('#wordSlots').innerHTML='';
+    $('#letterBank').innerHTML='';
+    [...word.toUpperCase()].forEach((letter,i)=>{
+      const s=document.createElement('button');
+      s.className='slot';
+      s.dataset.i=i;
+      s.dataset.letter=letter;
+      s.innerHTML=`<span class="slot-guide">${letter}</span>`;
+      s.addEventListener('click',()=>placeLetter(i));
+      $('#wordSlots').appendChild(s);
+    });
+    const letters = [...word.toUpperCase()];
+    const extras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(x=>!letters.includes(x));
+    const bank = shuffled([...letters, ...shuffled(extras).slice(0, Math.min(3, Math.max(2,6-letters.length)))]);
+    bank.forEach((letter,i)=>{
+      const b=document.createElement('button'); b.className='letter-tile'; b.textContent=letter; b.dataset.key=i;
+      b.addEventListener('click',()=>{
+        if(b.classList.contains('used')) return;
+        $$('.letter-tile').forEach(x=>x.classList.remove('selected'));
+        b.classList.add('selected'); selectedLetter={letter,button:b}; speak(letter);
+      });
+      $('#letterBank').appendChild(b);
+    });
+    $('#wordSpeak').onclick=()=>speak(word);
+    if (announce) speak(word);
+  }
+  function placeLetter(i) {
+    if(!selectedLetter) { speak('Tap a letter first.'); return; }
+    if(built[i]) return;
+    const slot=$(`.slot[data-i="${i}"]`);
+    const wanted=slot.dataset.letter;
+    if (selectedLetter.letter !== wanted) {
+      speak(`Find the ${selectedLetter.letter} box.`);
+      slot.animate([{transform:'translateX(-5px)'},{transform:'translateX(5px)'},{transform:'translateX(0)'}],{duration:260});
+      return;
+    }
+    built[i]=selectedLetter.letter;
+    slot.classList.add('filled');
+    slot.querySelector('.slot-guide').textContent=selectedLetter.letter;
+    selectedLetter.button.classList.add('used');
+    selectedLetter.button.classList.remove('selected');
+    selectedLetter=null;
+    if(!built.includes('')) {
+      const word=beginnerWordItems[wordIndex][0];
+      celebrateVisualOnly();
+      speak(`You made ${word}!`,()=>setTimeout(()=>{if(currentScreen==='words'){wordIndex=(wordIndex+1)%beginnerWordItems.length;setupWord();}},700));
+    }
+  }
+  $('#nextWord').addEventListener('click',()=>{wordIndex=(wordIndex+1)%beginnerWordItems.length;setupWord()});
+  setupWord(false);
+
+  // Doctor game
+  const doctorTools = {
+    bandage:{icon:'🩹',label:'Bandage'},
+    thermometer:{icon:'🌡️',label:'Thermometer'},
+    stethoscope:{icon:'🩺',label:'Stethoscope'},
+    earLight:{icon:'🔦',label:'Ear light'},
+    icePack:{icon:'🧊',label:'Ice pack'},
+    water:{icon:'🥤',label:'Cup of water'},
+    shot:{icon:'💉',label:'Shot'},
+    tissue:{icon:'🧻',label:'Tissue'},
+    tongueStick:{icon:'🥄',label:'Throat checker'},
+    eyeChart:{icon:'👁️',label:'Eye check'},
+    toothbrush:{icon:'🪥',label:'Toothbrush'},
+    medicine:{icon:'🥄',label:'Medicine spoon'},
+    cottonBall:{icon:'⚪',label:'Cotton ball'},
+    coolCloth:{icon:'🟦',label:'Cool cloth'},
+    armWrap:{icon:'🩼',label:'Arm wrap'},
+    kneeHammer:{icon:'🔨',label:'Knee hammer'},
+    blanket:{icon:'🛌',label:'Blanket'},
+    soap:{icon:'🧼',label:'Soap'},
+    hearing:{icon:'🎧',label:'Hearing check'},
+    skinCream:{icon:'🧴',label:'Skin cream'}
+  };
+  const doctorCases = [
+    {problem:'has a little scrape on an arm.',tool:'bandage',spot:'armLeft',face:'🙂',effect:'🩹',prompt:'Put a bandage on the scrape.',success:'The bandage is on. The scrape is covered and protected!'},
+    {problem:'feels warm and needs a temperature check.',tool:'thermometer',spot:'mouth',face:'🥵',effect:'🌡️',prompt:'Use the thermometer to check the temperature.',success:'The thermometer says the temperature check is finished.'},
+    {problem:'needs a heartbeat check.',tool:'stethoscope',spot:'chest',face:'🙂',effect:'🩺',prompt:'Listen to the heartbeat with the stethoscope.',success:'Boom-boom, boom-boom! The heartbeat sounds steady.'},
+    {problem:'has an ear that feels funny.',tool:'earLight',spot:'ear',face:'😕',effect:'🔦',prompt:'Look in the ear with the ear light.',success:'The ear check is finished. You looked gently and carefully.'},
+    {problem:'has a small bump on the head.',tool:'icePack',spot:'head',face:'😣',effect:'🧊',prompt:'Place the ice pack on the bump.',success:'The cool ice pack is helping the bump feel better.'},
+    {problem:'is thirsty after playing.',tool:'water',spot:'mouth',face:'😮',effect:'🥤',prompt:'Give the patient a cup of water.',success:'Sip, sip! The water helped the patient feel refreshed.'},
+    {problem:'is ready for a quick doctor shot.',tool:'shot',spot:'armRight',face:'🙂',effect:'💉',prompt:'Give the gentle pretend shot in the arm.',success:'All done! That was quick and brave. A tiny bandage goes on next.'},
+    {problem:'has a runny nose.',tool:'tissue',spot:'nose',face:'🤧',effect:'🧻',prompt:'Use a tissue for the runny nose.',success:'The nose is clean now. Great helping!'},
+    {problem:'has a scratchy throat.',tool:'tongueStick',spot:'mouth',face:'😮',effect:'🥄',prompt:'Use the throat checker and look inside the mouth.',success:'The throat check is finished. Open wide and say ahh!'},
+    {problem:'needs an eye check.',tool:'eyeChart',spot:'eyes',face:'🙂',effect:'👁️',prompt:'Check the patient’s eyes.',success:'The eye check is finished. The patient followed the pictures perfectly!'},
+    {problem:'needs help brushing a tooth.',tool:'toothbrush',spot:'mouth',face:'😁',effect:'🪥',prompt:'Brush the tooth with the toothbrush.',success:'Brush, brush, brush! The tooth is shiny and clean.'},
+    {problem:'has a little cough and needs the medicine spoon.',tool:'medicine',spot:'mouth',face:'😷',effect:'🥄',prompt:'Give the pretend medicine with the medicine spoon.',success:'The pretend medicine is finished. Now it is time to rest.'},
+    {problem:'has a scrape on a knee.',tool:'bandage',spot:'knee',face:'😕',effect:'🩹',prompt:'Put a bandage on the knee.',success:'Perfect! The knee has a bright new bandage.'},
+    {problem:'has a sore arm after playing.',tool:'icePack',spot:'armLeft',face:'😣',effect:'🧊',prompt:'Place the ice pack on the sore arm.',success:'The cool pack is resting on the sore arm.'},
+    {problem:'needs a scrape cleaned before the bandage.',tool:'cottonBall',spot:'armRight',face:'😕',effect:'⚪',prompt:'Tap the scrape with the cotton ball.',success:'The cotton ball gently cleaned the scrape.'},
+    {problem:'has a warm forehead.',tool:'coolCloth',spot:'head',face:'🥵',effect:'🟦',prompt:'Put the cool cloth on the forehead.',success:'The cool cloth feels calm and comfortable.'},
+    {problem:'has a wrist that needs support.',tool:'armWrap',spot:'wrist',face:'😣',effect:'🩼',prompt:'Put the soft arm wrap around the wrist.',success:'The wrist is supported with a soft wrap.'},
+    {problem:'needs a knee reflex check.',tool:'kneeHammer',spot:'knee',face:'🙂',effect:'🔨',prompt:'Gently tap the knee with the knee hammer.',success:'Tap! The knee gave a little kick. Reflex check complete!'},
+    {problem:'is chilly and needs to rest.',tool:'blanket',spot:'chest',face:'🥶',effect:'🛌',prompt:'Tuck the patient under the blanket.',success:'Warm and cozy! The patient is ready to rest.'},
+    {problem:'needs clean hands before the checkup.',tool:'soap',spot:'hand',face:'🙂',effect:'🧼',prompt:'Wash the patient’s hands with soap.',success:'Rub, rinse, all clean! The hands are ready.'},
+    {problem:'needs a hearing check.',tool:'hearing',spot:'ear',face:'🙂',effect:'🎧',prompt:'Put on the headphones for the hearing check.',success:'Beep, beep! The patient heard the sounds.'},
+    {problem:'has a dry spot on a hand.',tool:'skinCream',spot:'hand',face:'😕',effect:'🧴',prompt:'Put a little skin cream on the dry spot.',success:'The cream is rubbed in gently. The hand feels better.'},
+    {problem:'has a tiny scrape that needs cleaning.',tool:'cottonBall',spot:'knee',face:'😕',effect:'⚪',prompt:'Clean the tiny scrape with the cotton ball.',success:'The tiny scrape is clean and ready for a bandage.'},
+    {problem:'needs to hear the heartbeat in the back.',tool:'stethoscope',spot:'shoulder',face:'🙂',effect:'🩺',prompt:'Use the stethoscope on the upper back.',success:'Breathe in, breathe out. The breathing sounds nice and clear.'}
+  ];
+  const spotPositions = {
+    head:[50,20], eyes:[50,31], ear:[70,34], mouth:[50,43], nose:[50,38], chest:[50,61], shoulder:[59,56], armLeft:[22,64], armRight:[78,64], wrist:[81,77], hand:[19,80], knee:[58,88]
+  };
+  let currentCase;
+  let currentPatient;
+  let selectedDoctorTool='';
+  let doctorLocked=false;
+  let previousDoctorCase=-1;
+  let previousPatient='';
+  let doctorTransitionToken=0;
+
+  function randomDoctorTools(correctTool) {
+    const others = Object.keys(doctorTools).filter(k=>k!==correctTool);
+    return shuffled([correctTool, ...shuffled(others).slice(0,7)]);
+  }
+  function setPatientPicture(name) {
+    const img=$('#patientPhoto'); const face=$('#patientFace');
+    if (familyPhotos[name]) { img.src=familyPhotos[name]; img.style.display='block'; face.style.display='none'; }
+    else { img.style.display='none'; face.style.display='block'; face.textContent=currentCase.face; }
+  }
+  function setupDoctor(){
+    const token=++doctorTransitionToken;
+    doctorLocked=false; selectedDoctorTool='';
+    const patientChoices=family.slice(2).filter(name=>name!==previousPatient);
+    currentPatient=patientChoices[Math.floor(Math.random()*patientChoices.length)] || family[2];
+    previousPatient=currentPatient;
+    let caseIndex;
+    do { caseIndex=Math.floor(Math.random()*doctorCases.length); } while (doctorCases.length>1 && caseIndex===previousDoctorCase);
+    previousDoctorCase=caseIndex;
+    currentCase=doctorCases[caseIndex];
+    $('#patientName').textContent=currentPatient;
+    setPatientPicture(currentPatient);
+    $('#doctorProblem').textContent=`${currentPatient} ${currentCase.problem}`;
+    $('#doctorResult').textContent='Tap a doctor tool.';
+    $('#doctorEffect').textContent='';
+    const spot=$('#treatmentSpot'); spot.classList.remove('ready'); spot.textContent='';
+    $('#doctorTools').innerHTML='';
+    randomDoctorTools(currentCase.tool).forEach(key=>{
+      const tool=doctorTools[key];
+      const b=document.createElement('button'); b.className='tool'; b.innerHTML=`<div>${tool.icon}</div><span>${tool.label}</span>`;
+      b.addEventListener('click',()=>chooseDoctorTool(key,b));
+      $('#doctorTools').appendChild(b);
+    });
+    $('#doctorSpeak').onclick=()=>speak(`${currentPatient} ${currentCase.problem} ${currentCase.prompt}`);
+    setTimeout(()=>{ if(token===doctorTransitionToken && currentScreen==='doctor') speak(`${currentPatient} ${currentCase.problem}`); },300);
+  }
+  function chooseDoctorTool(key,button){
+    if(doctorLocked) return;
+    const tool=doctorTools[key];
+    $$('.tool').forEach(b=>b.classList.remove('selected'));
+    button.classList.add('selected');
+    selectedDoctorTool=key;
+    if(key!==currentCase.tool){
+      $('#doctorResult').textContent=`That is the ${tool.label}. Try a different tool.`;
+      speak(`${tool.label}. That is a good doctor tool, but try a different one for this patient.`);
+      return;
+    }
+    const [x,y]=spotPositions[currentCase.spot];
+    const spot=$('#treatmentSpot'); spot.style.left=`calc(${x}% - 31px)`; spot.style.top=`calc(${y}% - 31px)`; spot.textContent=tool.icon; spot.classList.add('ready');
+    $('#doctorResult').textContent=`${tool.label}! Now tap the glowing spot.`;
+    speak(`${tool.label}. ${currentCase.prompt} Tap the glowing circle.`);
+  }
+  $('#treatmentSpot').addEventListener('click',()=>{
+    if(doctorLocked || selectedDoctorTool!==currentCase.tool) return;
+    doctorLocked=true;
+    const spot=$('#treatmentSpot'); spot.classList.remove('ready');
+    const [x,y]=spotPositions[currentCase.spot];
+    const effect=$('#doctorEffect'); effect.style.left=`${x}%`; effect.style.top=`${y}%`; effect.textContent=currentCase.effect;
+    if(currentCase.tool==='shot') setTimeout(()=>{effect.textContent='🩹';},650);
+    $('#doctorResult').textContent=currentCase.success;
+    const thanks=[
+      `${currentCase.success} ${currentPatient} says, Thank you, Doctor Rozzie!`,
+      `${currentCase.success} Wonderful helping, Doctor Rozzie!`,
+      `${currentCase.success} ${currentPatient} feels cared for.`,
+      `${currentCase.success} You chose the right tool and used it gently.`
+    ];
+    const token=++doctorTransitionToken;
+    speak(thanks[Math.floor(Math.random()*thanks.length)],()=>{
+      if(token!==doctorTransitionToken) return;
+      setTimeout(()=>{
+        if(token===doctorTransitionToken && currentScreen==='doctor') setupDoctor();
+      },2000);
+    });
+    celebrateVisualOnly();
+  });
+  function celebrateVisualOnly(){
+    const box = $('#confetti'); box.innerHTML = ''; const bits = ['⭐','💖','🌈','✨','🌸'];
+    for (let i=0;i<22;i++) { const item=document.createElement('i'); item.textContent=bits[i%bits.length]; item.style.left=Math.random()*100+'vw'; item.style.fontSize=(18+Math.random()*18)+'px'; box.appendChild(item); }
+    setTimeout(()=>box.innerHTML='',2200);
+  }
+  setupDoctor();
+
+  // Runway
+  const skinTones=[
+    ['#f6d0b1','Light skin'],['#dca47d','Warm skin'],['#b97854','Medium skin'],['#8c5d45','Deep skin'],['#5f3a2b','Dark skin']
+  ];
+  skinTones.forEach(([tone,label],i)=>{
+    const b=document.createElement('button'); b.className='doll-choice'+(i===3?' selected':''); b.title=label;
+    const dot=document.createElement('span'); dot.className='skin-swatch'; dot.style.background=tone; b.appendChild(dot);
+    b.addEventListener('click',()=>{
+      $$('#skinChoices .doll-choice').forEach(x=>x.classList.remove('selected'));
+      b.classList.add('selected'); $('#runwayPerson').style.setProperty('--skin-tone',tone); speak(label);
+    });
+    $('#skinChoices').appendChild(b);
+  });
+  const hairStyles=[
+    ['short','💇','Short hair'],['bob','👩','Bob hair'],['long','👸','Long hair'],['curls','👩‍🦱','Curly hair']
+  ];
+  hairStyles.forEach(([style,icon,label],i)=>{
+    const b=document.createElement('button'); b.className='doll-choice'+(i===1?' selected':''); b.textContent=icon; b.title=label;
+    b.addEventListener('click',()=>{
+      $$('#hairChoices .doll-choice').forEach(x=>x.classList.remove('selected'));
+      b.classList.add('selected'); $('#avatarHair').className=`hair ${style}`; speak(label);
+    });
+    $('#hairChoices').appendChild(b);
+  });
+  const gownPalette=[
+    ['linear-gradient(135deg,#ff4f9a,#ff9dcc)','Pink sparkle'],
+    ['linear-gradient(135deg,#8b5cf6,#d9b4ff)','Purple shimmer'],
+    ['linear-gradient(135deg,#43c7b5,#b7ffe8)','Mermaid mint'],
+    ['linear-gradient(135deg,#ff8b47,#ffd27a)','Sunset gold'],
+    ['linear-gradient(135deg,#326dff,#9bc8ff)','Royal blue'],
+    ['linear-gradient(135deg,#ffd34d,#fff3a1)','Golden yellow'],
+    ['linear-gradient(135deg,#f8f8ff,#c8d9ff)','Icy silver'],
+    ['linear-gradient(135deg,#ff6666,#9d1f55)','Ruby red'],
+    ['linear-gradient(135deg,#54d65f,#d0ff9f)','Garden green'],
+    ['linear-gradient(135deg,#ff91e8,#78d9ff 50%,#ffe36e)','Rainbow gown']
+  ];
+  gownPalette.forEach(([color,label])=>{ const b=document.createElement('button'); b.className='swatch'; b.style.background=color; b.title=label; b.addEventListener('click',()=>{ $('#avatarGown').style.background=color; speak(label); }); $('#gownColors').appendChild(b); });
+  const crowns=[['👑','Golden crown'],['♛','Royal crown'],['💎','Diamond tiara'],['🌸','Flower crown'],['🦋','Butterfly crown'],['✨','Sparkle tiara'],['🌈','Rainbow crown'],['⭐','Star crown'],['🌹','Rose crown'],['❄️','Snow crown'],['💖','Heart crown'],['🌺','Tropical flower crown']];
+  crowns.forEach(([c,label])=>{ const b=document.createElement('button'); b.className='big-choice'; b.textContent=c; b.addEventListener('click',()=>{$('#avatarCrown').textContent=c;speak(label)}); $('#crownChoices').appendChild(b); });
+  const decorations=[['✨ ✨','Sparkles'],['💎 💎','Diamonds'],['🌸 🌸','Flowers'],['🦋 🦋','Butterflies'],['⭐ ⭐','Stars'],['💖 💖','Hearts'],['🌈','Rainbow'],['❄️ ❄️','Snowflakes'],['🌹 🌹','Roses'],['🌺 🌺','Tropical flowers'],['','Plain gown']];
+  decorations.forEach(([d,label])=>{ const b=document.createElement('button'); b.className='big-choice'; b.textContent=d||'🚫'; b.addEventListener('click',()=>{$('#avatarDecoration').textContent=d;speak(label)}); $('#gownDecorations').appendChild(b); });
+  $('#walkStage').addEventListener('click',()=>{ const p=$('#runwayPerson'); p.classList.remove('walk'); void p.offsetWidth; p.classList.add('walk'); speak('Welcome to Rozzie’s Royal Runway! Look at the beautiful gown!'); setTimeout(()=>celebrate('Sparkle star!'),2600); });
+
+  // Find it
+  const findPool=['🐪','🐷','🐶','🐱','🦆','🐸','🐝','🌸','⭐','🌈','🍎','🚗','🧸','👑','🩺','🦋'];
+  let findTarget;
+  function setupFind(){
+    findTarget=findPool[Math.floor(Math.random()*findPool.length)];
+    const names={'🐪':'camel','🐷':'pig','🐶':'dog','🐱':'cat','🦆':'duck','🐸':'frog','🐝':'bee','🌸':'flower','⭐':'star','🌈':'rainbow','🍎':'apple','🚗':'car','🧸':'teddy bear','👑':'crown','🩺':'stethoscope','🦋':'butterfly'};
+    $('#findTarget').textContent=`Find the ${names[findTarget]} ${findTarget}`;
+    $('#findScene').innerHTML='';
+    const items=shuffled([...findPool.slice(0,12),findTarget]);
+    items.forEach(icon=>{const b=document.createElement('button');b.className='find-item';b.textContent=icon;b.addEventListener('click',()=>{if(icon===findTarget){celebrate('You found it!');setTimeout(setupFind,1200)}else{speak('Keep looking.')}});$('#findScene').appendChild(b);});
+    $('#findSpeak').onclick=()=>speak(`Can you find the ${names[findTarget]}?`);
+  }
+  setupFind();
+
+  // Logic
+  const logicPuzzles=[
+    {seq:['🌱','🌿','❓'],choices:['🌸','🚗','🍪'],answer:'🌸',say:'A seed grows into a plant. What comes next?'},
+    {seq:['🛁','👚','❓'],choices:['🛏️','🚲','☀️'],answer:'🛏️',say:'Bath, pajamas, then what comes next?'},
+    {seq:['🌧️','💧','❓'],choices:['🌈','🍞','🐟'],answer:'🌈',say:'Rain, puddles, then what can come next?'},
+    {seq:['🧼','👏','❓'],choices:['✨','🚂','👑'],answer:'✨',say:'Soap, wash your hands, then clean hands.'},
+    {seq:['🥣','🥛','❓'],choices:['🥄','🧦','🩺'],answer:'🥄',say:'A bowl, milk, then what do you use to eat?'},
+    {seq:['🧦','👟','❓'],choices:['🚶','🛁','🌙'],answer:'🚶',say:'Socks, shoes, then ready to walk.'}
+  ];
+  let logicIndex=0;
+  function setupLogic(){
+    const q=logicPuzzles[logicIndex];
+    $('#logicSequence').innerHTML=q.seq.map(x=>x==='❓'?'<div class="missing">?</div>':`<span>${x}</span>`).join('<span>→</span>');
+    $('#logicChoices').innerHTML='';
+    shuffled(q.choices).forEach(icon=>{const b=document.createElement('button');b.className='big-choice';b.style.fontSize='2.7rem';b.textContent=icon;b.addEventListener('click',()=>{if(icon===q.answer){celebrate('That comes next!');logicIndex=(logicIndex+1)%logicPuzzles.length;setTimeout(setupLogic,1200)}else{speak('Try another picture.')}});$('#logicChoices').appendChild(b);});
+    $('#logicSpeak').onclick=()=>speak(q.say);
+  }
+  setupLogic();
+
+  // Camera
+  const filterList=[['👑','crown'],['🐱','cat'],['🐶','puppy'],['🦄','unicorn'],['🌸','flowers'],['🩺','doctor'],['👩‍🚀','astronaut'],['🌈','rainbow']];
+  let cameraStream=null;
+  let cameraFacing='user';
+  let activeFilter='👑';
+  filterList.forEach(([icon,label])=>{const b=document.createElement('button');b.className='filter-btn';b.textContent=icon;b.title=label;b.addEventListener('click',()=>{activeFilter=icon;$('#cameraOverlay').textContent=icon;speak(label)});$('#cameraFilters').appendChild(b);});
+  async function startCamera(){
+    if(!navigator.mediaDevices?.getUserMedia){showToast('Camera is not available in this browser.');return;}
+    stopCamera();
+    try{
+      cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:cameraFacing},audio:false});
+      $('#cameraVideo').srcObject=cameraStream;
+    }catch(err){showToast('A grown-up needs to allow the camera.');}
+  }
+  function stopCamera(){if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;} $('#cameraVideo').srcObject=null;}
+  $('#closeCamera').addEventListener('click',stopCamera);
+  $('#switchCamera').addEventListener('click',()=>{cameraFacing=cameraFacing==='user'?'environment':'user';startCamera()});
+  $('#takePhoto').addEventListener('click',()=>{
+    const video=$('#cameraVideo'); if(!video.videoWidth){showToast('Open the camera first.');return;}
+    const canvas=$('#photoCanvas'); canvas.width=video.videoWidth; canvas.height=video.videoHeight; const ctx=canvas.getContext('2d');
+    if(cameraFacing==='user'){ctx.translate(canvas.width,0);ctx.scale(-1,1);} ctx.drawImage(video,0,0,canvas.width,canvas.height); if(cameraFacing==='user')ctx.setTransform(1,0,0,1,0,0);
+    ctx.font=`${Math.floor(canvas.width*.22)}px serif`; ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillText(activeFilter,canvas.width/2,canvas.height*.05);
+    const img=$('#photoPreview'); img.src=canvas.toDataURL('image/jpeg',.84); img.style.display='block'; celebrate('Funny picture!');
+  });
+
+  // Puzzle
+  const defaultPuzzle = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='900' height='900'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop stop-color='#ff9ac7'/><stop offset='.45' stop-color='#9ddfff'/><stop offset='1' stop-color='#ffe37d'/></linearGradient></defs><rect width='900' height='900' fill='url(#g)'/><circle cx='450' cy='390' r='210' fill='#fff7ec'/><path d='M270 335 Q450 120 630 335' fill='none' stroke='#ff5e9f' stroke-width='65'/><path d='M295 370 Q450 190 605 370' fill='none' stroke='#ffbd4b' stroke-width='48'/><path d='M325 405 Q450 260 575 405' fill='none' stroke='#67c967' stroke-width='38'/><circle cx='380' cy='430' r='18' fill='#432f55'/><circle cx='520' cy='430' r='18' fill='#432f55'/><path d='M370 510 Q450 570 530 510' fill='none' stroke='#e64a86' stroke-width='20' stroke-linecap='round'/><text x='450' y='745' text-anchor='middle' font-family='Arial' font-size='84' font-weight='bold' fill='#68459a'>ROZZIE</text><text x='450' y='835' text-anchor='middle' font-size='75'>🌈 ⭐ 💖</text></svg>`);
+  let puzzleImage=defaultPuzzle;
+  let puzzleTiles=[];
+  let puzzleSelected=null;
+  function gridFor(n){return n===4?[2,2]:n===6?[3,2]:[4,2];}
+  function mixArray(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+  function setupPuzzle(mix=true){
+    const n=Number($('#puzzleSize').value); const [cols,rows]=gridFor(n); const board=$('#puzzleBoard'); board.style.gridTemplateColumns=`repeat(${cols},1fr)`; board.style.gridTemplateRows=`repeat(${rows},1fr)`; board.innerHTML=''; puzzleSelected=null;
+    if(!puzzleTiles.length || puzzleTiles.length!==n){puzzleTiles=Array.from({length:n},(_,i)=>({correct:i,pos:i,rot:0}));}
+    if(mix){ puzzleTiles.forEach(t=>t.rot=[0,90,180,270][Math.floor(Math.random()*4)]); mixArray(puzzleTiles); }
+    puzzleTiles.forEach((tile,visualIndex)=>{
+      const correct=tile.correct; const x=correct%cols; const y=Math.floor(correct/cols); const d=document.createElement('button'); d.className='puzzle-tile'; d.dataset.visual=visualIndex; d.style.backgroundImage=`url("${puzzleImage}")`; d.style.backgroundSize=`${cols*100}% ${rows*100}%`; d.style.backgroundPosition=`${cols===1?0:(x/(cols-1))*100}% ${rows===1?0:(y/(rows-1))*100}%`; d.style.transform=`rotate(${tile.rot}deg)`;
+      d.addEventListener('click',()=>puzzleTap(visualIndex,d)); board.appendChild(d);
+    });
+  }
+  function puzzleTap(i,el){
+    if(puzzleSelected===null){puzzleSelected=i;el.classList.add('selected');speak('Tap this piece again to turn it, or tap another piece to switch places.');return;}
+    if(puzzleSelected===i){puzzleTiles[i].rot=(puzzleTiles[i].rot+90)%360;puzzleSelected=null;setupPuzzle(false);checkPuzzle();return;}
+    [puzzleTiles[puzzleSelected],puzzleTiles[i]]=[puzzleTiles[i],puzzleTiles[puzzleSelected]];puzzleSelected=null;setupPuzzle(false);checkPuzzle();
+  }
+  function checkPuzzle(){const done=puzzleTiles.every((t,i)=>t.correct===i && t.rot%360===0);if(done)celebrate('You finished the picture!');}
+  $('#mixPuzzle').addEventListener('click',()=>setupPuzzle(true));
+  $('#puzzleSize').addEventListener('change',()=>{puzzleTiles=[];setupPuzzle(true)});
+  $('#puzzleUpload').addEventListener('change',e=>{const file=e.target.files?.[0];if(!file)return;const r=new FileReader();r.onload=()=>{puzzleImage=r.result;puzzleTiles=[];setupPuzzle(true);speak('Your picture is ready!')};r.readAsDataURL(file);});
+  setupPuzzle(true);
+
+  // Sound & Color studio
+  let mediaRecorder=null;
+  let recordedChunks=[];
+  let recordedAudioUrl=localStorage.getItem('rozzieRecordedName') || '';
+  let micStream=null;
+  let recordStopTimer=null;
+  const recordBtn=$('#recordName');
+  function setStudioText(){ $('#studioText').textContent=recordedAudioUrl?'Tap anywhere to hear your recording!':'Tap the microphone and say “Rozzie!”'; }
+  setStudioText();
+  recordBtn.addEventListener('click',async()=>{
+    if(mediaRecorder?.state==='recording'){mediaRecorder.stop();return;}
+    if(!navigator.mediaDevices?.getUserMedia){showToast('Microphone is not available.');return;}
+    try{
+      micStream=await navigator.mediaDevices.getUserMedia({audio:true});
+      recordedChunks=[]; mediaRecorder=new MediaRecorder(micStream); mediaRecorder.ondataavailable=e=>{if(e.data.size)recordedChunks.push(e.data)};
+      mediaRecorder.onstop=()=>{clearTimeout(recordStopTimer);const blob=new Blob(recordedChunks,{type:mediaRecorder.mimeType||'audio/webm'});const reader=new FileReader();reader.onload=()=>{recordedAudioUrl=reader.result;try{localStorage.setItem('rozzieRecordedName',recordedAudioUrl)}catch(e){}setStudioText();showToast('Name saved!');speak('Now tap the colors!')};reader.readAsDataURL(blob);recordBtn.classList.remove('recording');recordBtn.textContent='🎙️';micStream?.getTracks().forEach(t=>t.stop());};
+      mediaRecorder.start();recordBtn.classList.add('recording');recordBtn.textContent='⏹️';showToast('Recording… tap again to stop.');recordStopTimer=setTimeout(()=>{if(mediaRecorder?.state==='recording')mediaRecorder.stop();},5000);
+    }catch(err){showToast('A grown-up needs to allow the microphone.');}
+  });
+  function playRecorded(rate=1){if(!recordedAudioUrl){speak('Record a name first.');return;}const a=new Audio(recordedAudioUrl);a.playbackRate=rate;a.preservesPitch=false;a.mozPreservesPitch=false;a.webkitPreservesPitch=false;a.play().catch(()=>{});}
+  $('#playName').addEventListener('click',()=>playRecorded(1));
+  $('#clearName').addEventListener('click',()=>{recordedAudioUrl='';localStorage.removeItem('rozzieRecordedName');setStudioText();showToast('Recording cleared.');});
+  $('#studioPad').addEventListener('pointerdown',e=>{
+    const rect=e.currentTarget.getBoundingClientRect(); const x=e.clientX-rect.left,y=e.clientY-rect.top; const rate=1.65-(y/rect.height)*.95; playRecorded(Math.max(.65,Math.min(1.7,rate)));
+    const colors=['#ff4f9a','#6c63ff','#00bfa6','#ffad33','#4ab8ff','#9b59d0']; const wave=document.createElement('span');wave.className='wave';wave.style.left=x+'px';wave.style.top=y+'px';wave.style.color=colors[Math.floor((x/rect.width)*colors.length)%colors.length];e.currentTarget.appendChild(wave);setTimeout(()=>wave.remove(),1300);
+  });
+
+  // Grown-up pictures and voice
+  function resizeFamilyPhoto(file) {
+    return new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onerror=reject;
+      reader.onload=()=>{
+        const img=new Image();
+        img.onerror=reject;
+        img.onload=()=>{
+          const size=360; const canvas=document.createElement('canvas'); canvas.width=size; canvas.height=size; const ctx=canvas.getContext('2d');
+          const crop=Math.min(img.naturalWidth,img.naturalHeight); const sx=(img.naturalWidth-crop)/2; const sy=(img.naturalHeight-crop)/2;
+          ctx.drawImage(img,sx,sy,crop,crop,0,0,size,size);
+          resolve(canvas.toDataURL('image/jpeg',.78));
+        };
+        img.src=reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  function saveFamilyPhotos(){
+    try { localStorage.setItem('rozzieFamilyPhotos',JSON.stringify(familyPhotos)); }
+    catch(e){ showToast('This phone is out of picture storage. Try smaller pictures.'); }
+  }
+  function renderFamilyPhotoCards(){
+    const box=$('#familyPhotoCards'); if(!box)return; box.innerHTML='';
+    family.forEach(name=>{
+      const card=document.createElement('div'); card.className='photo-card';
+      const pictureWrap=document.createElement('div');
+      if(familyPhotos[name]) { const img=document.createElement('img'); img.src=familyPhotos[name]; img.alt=''; pictureWrap.appendChild(img); }
+      else { const placeholder=document.createElement('div'); placeholder.className='photo-placeholder'; placeholder.textContent='🙂'; pictureWrap.appendChild(placeholder); }
+      const words=document.createElement('div'); words.innerHTML=`<strong>${name}</strong><div class="adult-note" style="text-align:left;margin:3px 0 0">Used in tracing and Doctor Rozzie</div>`;
+      const label=document.createElement('label'); label.className='small-upload'; label.innerHTML='📷';
+      const input=document.createElement('input'); input.type='file'; input.accept='image/*'; 
+      input.addEventListener('change',async e=>{const file=e.target.files?.[0]; if(!file)return; showToast('Adding picture…'); try{familyPhotos[name]=await resizeFamilyPhoto(file);saveFamilyPhotos();renderFamilyPhotoCards();renderTraceFamily();if(currentPatient===name)setPatientPicture(name);showToast(`${name} picture added!`);}catch(err){showToast('That picture could not be added.');}});
+      label.appendChild(input); card.append(pictureWrap,words,label); box.appendChild(card);
+    });
+  }
+  renderFamilyPhotoCards();
+  $('#voiceSelect').addEventListener('change',e=>{chosenVoiceName=e.target.value;localStorage.setItem('rozzieVoiceName',chosenVoiceName);speak('Hi Rozzie! This is my new voice.');});
+  $('#voiceTest').addEventListener('click',()=>speak('Hi Rozzie! Welcome to your playhouse!'));
+  $('#voiceTestTop').addEventListener('click',()=>speak('Hi Rozzie! Welcome to your playhouse!'));
+
+  // PWA registration
+  if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));}
+  addEventListener('beforeunload',()=>{stopCamera();micStream?.getTracks().forEach(t=>t.stop())});
+
+  speak('Hi Rozzie! Tap a picture to play.');
+})();
+</script>
+</body>
+</html>
